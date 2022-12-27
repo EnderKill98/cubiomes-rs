@@ -10,7 +10,7 @@ enum MakeResult {
 
 fn main() -> Result<()> {
     println!("cargo:rerun-if-changed=build/");
-    println!("cargo:rerun-if-changed=cubiomes/");
+    println!("cargo:rerun-if-changed=vendor/");
 
     generate_bindings().context("Generating bindings with bindgen")?;
 
@@ -26,9 +26,9 @@ fn generate_bindings() -> Result<()> {
         // The input header we would like to generate
         // bindings for.
         // Includes all other headers (except util.h)
-        .header("cubiomes/quadbase.h")
+        .header("vendor/quadbase.h")
         // Include has not implicitly included by quadbase.h
-        .header("cubiomes/util.h")
+        .header("vendor/util.h")
         // Tell cargo to invalidate the built crate whenever any of the
         // included header files changed.
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
@@ -46,11 +46,11 @@ fn build_with_make() -> Result<MakeResult> {
     // Copy to OUT_DIR as objects and lib are generated within the same directory
     let ref cubiomes_build_dir = PathBuf::from(env::var("OUT_DIR")?).join("cubiomes_build");
     if !cubiomes_build_dir.exists() {
-        println!("Copying folder cubiomes to {cubiomes_build_dir:?} for building");
+        println!("Copying folder vendor to {cubiomes_build_dir:?} for building");
         let mut options = fs_extra::dir::CopyOptions::default();
         options.copy_inside = true;
-        fs_extra::dir::copy("cubiomes", cubiomes_build_dir, &options)?;
-        println!("Copied folder cubiomes to {cubiomes_build_dir:?} for building");
+        fs_extra::dir::copy("vendor", cubiomes_build_dir, &options)?;
+        println!("Copied folder vendor to {cubiomes_build_dir:?} for building");
     }
     println!("Compiling libcubiomes in {cubiomes_build_dir:?}");
     let profile = if cfg!(debug_assertions) {
@@ -85,13 +85,13 @@ fn build_with_make() -> Result<MakeResult> {
 
 fn build_with_cc() -> Result<(), cc::Error> {
     cc::Build::new()
-        .file("cubiomes/biome_tree.c")
-        .file("cubiomes/finders.c")
-        .file("cubiomes/generator.c")
-        .file("cubiomes/layers.c")
-        .file("cubiomes/noise.c")
-        .file("cubiomes/quadbase.c")
-        .file("cubiomes/util.c")
+        .file("vendor/biome_tree.c")
+        .file("vendor/finders.c")
+        .file("vendor/generator.c")
+        .file("vendor/layers.c")
+        .file("vendor/noise.c")
+        .file("vendor/quadbase.c")
+        .file("vendor/util.c")
         .try_compile("cubiomes")?;
     Ok(())
 }
