@@ -1,3 +1,3 @@
 pub use libcubiomes_sys as sys;
 
-pub mod finder;
+pub mod finders;
