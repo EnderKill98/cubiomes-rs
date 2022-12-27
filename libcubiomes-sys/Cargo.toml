@@ -3,6 +3,7 @@ name = "libcubiomes-sys"
 version = "0.1.0"
 edition = "2021"
 authors = [ "EnderKill98 " ]
+license = "MIT"
 
 build = "build/build.rs"
 links = "cubiomes"

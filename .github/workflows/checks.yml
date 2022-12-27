@@ -1,0 +1,31 @@
+# Some santity checks to validate whether everything works on the newest stable rust version
+
+on:
+  push:
+  pull_request:
+  schedule:
+    # Run checks every Friday at 3 AM
+    # Useful to alert when something started to fail in a newer rust version
+    - cron: "0 3 * * 5"
+
+name: Checks
+
+jobs:
+
+  build_test:
+    name: Build test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions-rs/cargo@v1
+      with:
+        command: build
+
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions-rs/cargo@v1
+      with:
+        command: test
