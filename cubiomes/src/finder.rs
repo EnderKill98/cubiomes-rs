@@ -43,10 +43,10 @@ impl CubiomesFinder {
 /// https://github.com/Cubitect/cubiomes/tree/master#biome-generation-in-a-range
 pub struct BiomeCache {
     x: i32,
-    y: i32,
+    //y: i32,
     z: i32,
     sx: i32,
-    sy: i32,
+    //sy: i32,
     sz: i32,
     biome_id_cache: *mut BiomeID,
 }
@@ -73,10 +73,10 @@ impl BiomeCache {
             BiomeCache {
                 biome_id_cache,
                 x,
-                y,
+                //y,
                 z,
                 sx,
-                sy,
+                //sy,
                 sz,
             }
         }
