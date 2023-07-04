@@ -44,11 +44,10 @@ fn generate_bindings() -> Result<()> {
 
 fn build_with_make() -> Result<MakeResult> {
     // Copy to OUT_DIR as objects and lib are generated within the same directory
-    let ref cubiomes_build_dir = PathBuf::from(env::var("OUT_DIR")?).join("cubiomes_build");
+    let cubiomes_build_dir = &PathBuf::from(env::var("OUT_DIR")?).join("cubiomes_build");
     if !cubiomes_build_dir.exists() {
         println!("Copying folder vendor to {cubiomes_build_dir:?} for building");
-        let mut options = fs_extra::dir::CopyOptions::default();
-        options.copy_inside = true;
+        let options = fs_extra::dir::CopyOptions { copy_inside: true, ..Default::default() };
         fs_extra::dir::copy("vendor", cubiomes_build_dir, &options)?;
         println!("Copied folder vendor to {cubiomes_build_dir:?} for building");
     }
@@ -59,7 +58,7 @@ fn build_with_make() -> Result<MakeResult> {
         "release"
     };
     let make_exit_code = match Command::new("make")
-        .args(&["-C", cubiomes_build_dir.to_str().unwrap(), profile])
+        .args(["-C", cubiomes_build_dir.to_str().unwrap(), profile])
         .status()
     {
         Ok(exit_code) => exit_code,
