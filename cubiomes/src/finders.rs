@@ -2,6 +2,7 @@ use std::mem::MaybeUninit;
 use std::ffi::{c_int, c_void};
 
 pub use libcubiomes_sys::BiomeID;
+pub use libcubiomes_sys::Dimension;
 pub use libcubiomes_sys::MCVersion;
 
 
@@ -10,7 +11,7 @@ pub struct CubiomesFinder {
 }
 
 impl CubiomesFinder {
-    pub fn new(seed: i64, version: MCVersion) -> Self {
+    pub fn new(seed: i64, version: MCVersion, dim: Dimension) -> Self {
         unsafe {
             let mut finder = CubiomesFinder {
                 generator: MaybeUninit::zeroed(),
@@ -18,10 +19,16 @@ impl CubiomesFinder {
             libcubiomes_sys::setupGenerator(finder.generator.as_mut_ptr(), version as c_int, 0);
             libcubiomes_sys::applySeed(
                 finder.generator.as_mut_ptr(),
-                libcubiomes_sys::Dimension_DIM_OVERWORLD,
+                dim,
                 seed as u64,
             );
             finder
+        }
+    }
+
+    pub fn apply_seed(&mut self, seed: i64, dim: Dimension) {
+        unsafe {
+            libcubiomes_sys::applySeed(self.generator.as_mut_ptr(), dim, seed as u64);   
         }
     }
 
@@ -66,15 +73,16 @@ impl CoordScaling {
 /// https://github.com/Cubitect/cubiomes/tree/master#biome-generation-in-a-range
 pub struct BiomeCache {
     x: i32,
-    //y: i32,
+    y: i32,
     z: i32,
     sx: i32,
-    //sy: i32,
+    sy: i32,
     sz: i32,
     biome_id_cache: *mut BiomeID,
 }
 
 impl BiomeCache {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         finder: &CubiomesFinder,
         scale: CoordScaling,
@@ -82,10 +90,10 @@ impl BiomeCache {
         z: i32,
         sx: i32,
         sz: i32,
+        y: i32,
+        sy: i32,
     ) -> Self {
         unsafe {
-            let y = 63;
-            let sy = 1;
             let r = libcubiomes_sys::Range {
                 scale: scale.value(), // Divide your input coordinates by this value
                 // Define the position and size for a horizontal area:
@@ -93,7 +101,7 @@ impl BiomeCache {
                 z,  // position (x,z)
                 sx, // size (width,height)
                 sz,
-                // Set the vertical range as a plane near sea level at scale 1:4.
+                // Set the vertical range as a plane near sea level at scale 1:4 (unless 1:1).
                 y,
                 sy,
             };
@@ -103,28 +111,28 @@ impl BiomeCache {
             BiomeCache {
                 biome_id_cache,
                 x,
-                //y,
+                y,
                 z,
                 sx,
-                //sy,
+                sy,
                 sz,
             }
         }
     }
 
-    pub fn is_in_bounds(&self, x: i32, z: i32) -> bool {
-        x >= self.x && x < self.x + self.sx && z >= self.z && z < self.z + self.sz
+    pub fn is_in_bounds(&self, x: i32, y: i32, z: i32) -> bool {
+        x >= self.x && x < self.x + self.sx && y >= self.y && y < self.y + self.sy && z >= self.z && z < self.z + self.sz
     }
 
-    pub fn get_biome_at(&self, x: i32, z: i32) -> BiomeID {
-        if !self.is_in_bounds(x, z) {
+    pub fn get_biome_at(&self, x: i32, y: i32, z: i32) -> BiomeID {
+        if !self.is_in_bounds(x, y, z) {
             panic!(
                 "Coordinate out of range for cache! Accepted: (x:{}..{}, z:{}..{}), Received: (x:{}, z:{}).",
                     self.x, self.x + self.sx, self.z, self.z + self.sz, x, z
             );
         }
         let i_x = x - self.x;
-        let i_y = 0;
+        let i_y = y - self.y;
         let i_z = z - self.z;
         let offset = i_y * self.sx * self.sz + i_z * self.sx + i_x;
         unsafe { *self.biome_id_cache.offset(offset as isize) }
