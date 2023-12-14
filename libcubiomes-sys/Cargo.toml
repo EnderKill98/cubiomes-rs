@@ -2,7 +2,7 @@
 name = "libcubiomes-sys"
 version = "0.1.0"
 edition = "2021"
-authors = [ "EnderKill98 " ]
+authors = ["EnderKill98 "]
 license = "MIT"
 
 build = "build/build.rs"
@@ -10,6 +10,6 @@ links = "cubiomes"
 
 [build-dependencies]
 anyhow = "1"
-bindgen = "0.60"
+bindgen = "0.69"
 cc = "1"
 fs_extra = "1"
